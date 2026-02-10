@@ -6,4 +6,7 @@ export class MarkAsReadDto {
 
   @IsUUID()
   messageId: string;
+
+  @IsUUID()
+  userId: string;
 }
