@@ -15,7 +15,7 @@ import { LoginDto } from './dtos/login.dto';
 import { UserService } from 'src/user/user.service';
 import { AuthResponseDto } from './dtos/auth-response.dto';
 import { CreateUserDto } from 'src/user/dtos/user-input.dto';
-import * as authGuard from './guards/auth.guard';
+import { AuthGuard, type RequestWithUser } from './guards/auth.guard';
 import { UserResponseDto } from 'src/user/dtos/user-response.dto';
 import { plainToInstance } from 'class-transformer';
 
@@ -56,9 +56,9 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(authGuard.AuthGuard)
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  async me(@Req() req: authGuard.RequestWithUser): Promise<UserResponseDto> {
+  async me(@Req() req: RequestWithUser): Promise<UserResponseDto> {
     const user = await this.userService.findOne(req.user.sub);
     return plainToInstance(UserResponseDto, user);
   }

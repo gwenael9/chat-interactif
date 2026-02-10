@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './user.entity';
@@ -28,6 +29,7 @@ export class UserService {
   async findOne(id: string): Promise<UserEntity> {
     const user = await this.userRepository.findOne({
       where: { id },
+      relations: { friends: true },
     });
 
     if (!user) {
@@ -52,5 +54,52 @@ export class UserService {
       password: hashedPassword,
     });
     return this.userRepository.save(newUser);
+  }
+
+  /**
+   *
+   * @param userId L'id du user qui ajoute
+   * @param friendId L'id du user au quel on souhaite ajouter
+   * @returns L'user ajouté
+   */
+  async addFriend(userId: string, friendId: string): Promise<UserEntity> {
+    if (userId == friendId) {
+      throw new UnauthorizedException(
+        'Vous ne pouvez pas vous ajouter en ami.',
+      );
+    }
+
+    const user = await this.findOne(userId);
+    const friend = await this.findOne(friendId);
+
+    this.verifyIfIsAlreadyFriend(user, friend);
+
+    friend.friends.push(user);
+    user.friends.push(friend);
+
+    await this.userRepository.save([user, friend]);
+    return friend;
+  }
+
+  async removeFriend(userId: string, friendId: string): Promise<UserEntity> {
+    const user = await this.findOne(userId);
+    const friend = await this.findOne(friendId);
+
+    if (!user.friends.some((f) => f.id === friendId)) {
+      throw new UnauthorizedException(
+        `${friend.pseudo} ne fait partie de vos amis.`,
+      );
+    }
+
+    user.friends = user.friends.filter((f) => f.id !== friendId);
+    friend.friends = friend.friends.filter((u) => u.id !== userId);
+
+    await this.userRepository.save([user, friend]);
+    return friend;
+  }
+
+  verifyIfIsAlreadyFriend(user: UserEntity, friend: UserEntity): void {
+    const alreadyFriends = user.friends.some((f) => f.id === friend.id);
+    if (alreadyFriends) throw new UnauthorizedException('Vous êtes déjà amis.');
   }
 }
