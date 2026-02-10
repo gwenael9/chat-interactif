@@ -18,7 +18,7 @@ Application de chat interactive composée d'un backend NestJS et d'une base de d
 - **Cloner le dépôt** :
 
 ```bash
-git clone <url-du-repo>
+git clone https://github.com/gwenael9/chat-interactif
 cd chat-interactif
 ```
 
@@ -38,12 +38,6 @@ cp .env.example .env
 ```
 
 Adapte ces valeurs selon ton environnement (mot de passe, nom de base, etc.).
-
-Pour générer un JWT_SECRET, lancer le script `./generate-hwt.sh` :
-
-```bash
-./generate-jwt.sh
-```
 
 ### Lancer l'environnement de développement
 
