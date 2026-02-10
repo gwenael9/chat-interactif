@@ -57,6 +57,7 @@ body {
     border-radius: 8px;
     margin-bottom: 8px;
     transition: 0.3s;
+    background-color: #f7c43a;
 }
 
 .sidebar a i {
