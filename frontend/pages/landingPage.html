@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Collaborative Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/landingPage.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="topbar">
+    <div class="logo">Collab<span>App</span></div>
+    <div class="user">
+        <i class="fa-solid fa-user"></i>
+        <span>Stevie</span>
+    </div>
+</nav>
+
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <a class="active"><i class="fa-solid fa-users"></i> Groupes</a>
+        <a><i class="fa-solid fa-address-book"></i> Contacts</a>
+        <a><i class="fa-solid fa-plus"></i> Créer un groupe</a>
+        <a><i class="fa-solid fa-gear"></i> Paramètres</a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+        <h2>Mes groupes</h2>
+
+        <div class="cards">
+            <a href="groupChat.html">
+                <div class="card-box">
+                    <h4>Projet Dev Web</h4>
+                    <p>5 membres</p>
+                </div>
+            </a>
+
+            <div class="card-box">
+                <h4>Startup Idea</h4>
+                <p>3 membres</p>
+            </div>
+
+            <div class="card-box add">
+                <i class="fa-solid fa-plus"></i>
+                <p>Nouveau groupe</p>
+            </div>
+        </div>
+
+        <h2 class="mt-4">Contacts récents</h2>
+
+        <ul class="contact-list">
+            <li><i class="fa-solid fa-user"></i> Alice</li>
+            <li><i class="fa-solid fa-user"></i> John</li>
+            <li><i class="fa-solid fa-user"></i> Fatou</li>
+        </ul>
+    </main>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Projet Dev Web | Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/groupChat.css">
+</head>
+<body>
+
+<div class="chat-container">
+
+    <!-- HEADER -->
+    <header class="chat-header">
+        <div class="group-info">
+            <i class="fa-solid fa-users"></i>
+            <div>
+                <h4>Projet Dev Web</h4>
+                <span>5 membres</span>
+            </div>
+        </div>
+
+        <div class="chat-actions">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+        </div>
+    </header>
+
+    <!-- MESSAGES -->
+    <main class="chat-messages">
+        <div class="message received">
+            <p class="author">Alice</p>
+            <p>Salut tout le monde 👋</p>
+            <span class="time">10:02</span>
+        </div>
+
+        <div class="message received">
+            <p class="author">John</p>
+            <p>On avance sur la page d’accueil aujourd’hui ?</p>
+            <span class="time">10:05</span>
+        </div>
+
+        <div class="message sent">
+            <p>Oui, j’ai presque fini le CSS 💪</p>
+            <span class="time">10:06</span>
+        </div>
+    </main>
+
+    <!-- INPUT -->
+    <footer class="chat-input">
+        <i class="fa-solid fa-paperclip"></i>
+        <input type="text" placeholder="Écrire un message..." />
+        <button>
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
+    </footer>
+
+</div>
+
+</body>
+</html>
