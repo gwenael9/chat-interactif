@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './user.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/user-input.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -16,7 +16,12 @@ export class UserService {
     private userRepository: Repository<UserEntity>,
   ) {}
 
-  async findAll(): Promise<UserEntity[]> {
+  async findAll(search?: string): Promise<UserEntity[]> {
+    if (search) {
+      return await this.userRepository.find({
+        where: { pseudo: ILike(`%${search}%`) },
+      });
+    }
     return await this.userRepository.find();
   }
 
