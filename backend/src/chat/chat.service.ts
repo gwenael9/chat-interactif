@@ -4,8 +4,6 @@ import { Repository, MoreThan } from 'typeorm';
 import { MessageEntity } from './entity/message.entity';
 import { ConversationUserEntity } from './entity/conversation-user.entity';
 
-
-
 @Injectable()
 export class ChatService {
   constructor(
@@ -15,7 +13,6 @@ export class ChatService {
     @InjectRepository(ConversationUserEntity)
     private readonly convUserRepo: Repository<ConversationUserEntity>,
   ) {}
-
 
   async saveMessage(data: {
     conversationId: string;
@@ -37,21 +34,12 @@ export class ChatService {
     return this.messageRepo.save(message);
   }
 
-  async getMessagesByConversation(conversationId: string) {
-    return this.messageRepo.find({
-      where: { conversationId },
-      order: { createdAt: 'ASC' },
-    });
-  }
-
- 
   async markAsRead(userId: string, conversationId: string, messageId: string) {
     await this.convUserRepo.update(
       { userId, conversationId },
       { lastReadMessageId: messageId },
     );
   }
-
 
   async getUnreadCount(userId: string, conversationId: string) {
     const lastRead = await this.convUserRepo.findOne({
@@ -67,9 +55,9 @@ export class ChatService {
   }
 
   async getMessagesByConversation(conversationId: string) {
-  return this.messageRepo.find({
-    where: { conversationId },
-    order: { createdAt: 'ASC' }, // du plus ancien au plus récent
-  });
-}
+    return this.messageRepo.find({
+      where: { conversationId },
+      order: { createdAt: 'ASC' }, // du plus ancien au plus récent
+    });
+  }
 }
