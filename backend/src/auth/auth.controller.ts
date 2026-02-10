@@ -12,11 +12,12 @@ import {
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dtos/login.dto';
-import { UserEntity } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { AuthResponseDto } from './dtos/auth-response.dto';
 import { CreateUserDto } from 'src/user/dtos/user-input.dto';
 import * as authGuard from './guards/auth.guard';
+import { UserResponseDto } from 'src/user/dtos/user-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('auth')
 export class AuthController {
@@ -57,7 +58,8 @@ export class AuthController {
   @Get('me')
   @UseGuards(authGuard.AuthGuard)
   @HttpCode(HttpStatus.OK)
-  async me(@Req() req: authGuard.RequestWithUser): Promise<UserEntity> {
-    return await this.userService.findOne(req.user.sub);
+  async me(@Req() req: authGuard.RequestWithUser): Promise<UserResponseDto> {
+    const user = await this.userService.findOne(req.user.sub);
+    return plainToInstance(UserResponseDto, user);
   }
 }
