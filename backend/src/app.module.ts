@@ -10,6 +10,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { databaseConfig } from './config';
 import { Reflector } from '@nestjs/core';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { Reflector } from '@nestjs/core';
       isGlobal: true,
     }),
     TypeOrmModule.forRoot(databaseConfig),
+    AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
