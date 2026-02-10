@@ -1,12 +1,12 @@
- import {
+import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   CreateDateColumn,
 } from 'typeorm';
-import { UserEntity } from '../user/user.entity';
 import { ConversationEntity } from './conversation.entity';
+import { UserEntity } from 'src/user/user.entity';
 
 @Entity('message')
 export class MessageEntity {

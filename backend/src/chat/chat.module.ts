@@ -16,10 +16,6 @@ import { ConversationUserEntity } from './entity/conversation-user.entity';
       UserEntity,
     ]),
   ],
-  controllers : [ConversationEntity],
   providers: [ChatGateway, ChatService],
-
 })
 export class ChatModule {}
-
-

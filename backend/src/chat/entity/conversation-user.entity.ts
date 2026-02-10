@@ -1,10 +1,5 @@
-import {
-  Entity,
-  ManyToOne,
-  Column,
-  PrimaryColumn,
-} from 'typeorm';
-import { UserEntity } from '../user/user.entity';
+import { Entity, ManyToOne, Column, PrimaryColumn } from 'typeorm';
+import { UserEntity } from 'src/user/user.entity';
 import { ConversationEntity } from './conversation.entity';
 
 @Entity('conversation_user')

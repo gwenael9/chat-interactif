@@ -11,7 +11,6 @@ import { ChatService } from './chat.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway {
-
   constructor(private readonly chatService: ChatService) {}
 
   @WebSocketServer()
@@ -24,21 +23,17 @@ export class ChatGateway {
   ) {
     console.log('Message reçu:', payload.content);
 
-
     this.server.emit('newMessage', {
       content: payload.content,
       senderSocketId: client.id,
     });
   }
 
-
-
   @SubscribeMessage('getHistory')
   async handleGetHistory(
     @ConnectedSocket() client: Socket,
     @MessageBody() dto: GetHistoryDto,
   ) {
-
     const messages = await this.chatService.getMessagesByConversation(
       dto.conversationId,
     );
