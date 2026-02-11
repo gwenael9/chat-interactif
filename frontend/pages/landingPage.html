@@ -73,6 +73,8 @@ async function getCurrentUser() {
             credentials: "include"
         });
 
+        console.log("response",response);
+
         if (!response.ok) {
             window.location.href = "login.html";
             return null;

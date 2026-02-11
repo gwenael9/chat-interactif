@@ -26,6 +26,7 @@ export class ChatService {
 
   async createConversation(
     participantIds: string[],
+    conversatioName: string,
   ): Promise<ConversationEntity> {
     for (const participantId of participantIds) {
       const participant = await this.userService.findOne(participantId);
@@ -37,6 +38,7 @@ export class ChatService {
     const conversation = this.conversationRepo.create({
       isGroup: participantIds.length > 2,
       participants: participantIds.map((id) => ({ userId: id })),
+      name: conversatioName,
     });
 
     const savedConversation = await this.conversationRepo.save(conversation);

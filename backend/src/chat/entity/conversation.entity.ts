@@ -24,4 +24,7 @@ export class ConversationEntity {
 
   @OneToMany(() => MessageEntity, (message) => message.conversation)
   messages: MessageEntity[];
+
+  @Column()
+  name: string;
 }
