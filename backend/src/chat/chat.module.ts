@@ -8,6 +8,7 @@ import { ConversationUserEntity } from './entity/conversation-user.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { UserModule } from 'src/user/user.module';
 import { ChatController } from './chat.controller';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ChatController } from './chat.controller';
     ]),
     AuthModule,
     UserModule,
+    EventEmitterModule.forRoot(),
   ],
   controllers: [ChatController],
   providers: [ChatGateway, ChatService],

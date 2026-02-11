@@ -2,9 +2,10 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, MoreThan, In } from 'typeorm';
 import { MessageEntity } from './entity/message.entity';
 import { ConversationUserEntity } from './entity/conversation-user.entity';
 import { UserService } from 'src/user/user.service';
@@ -48,6 +49,48 @@ export class ChatService {
     const savedConversation = await this.conversationRepo.save(conversation);
 
     return savedConversation;
+  }
+
+  async findAll(userId: string): Promise<ConversationEntity[]> {
+    const memberships = await this.convUserRepo.find({
+      where: { userId },
+    });
+
+    const conversationIds = memberships.map((m) => m.conversationId);
+
+    if (conversationIds.length === 0) return [];
+
+    return this.conversationRepo.find({
+      where: { id: In(conversationIds) },
+      relations: ['participants'],
+    });
+  }
+
+  async findOne(
+    conversationId: string,
+    userId: string,
+  ): Promise<ConversationEntity> {
+    // 1. Vérifier que l'utilisateur fait partie de la conversation
+    const membership = await this.convUserRepo.findOne({
+      where: { conversationId, userId },
+    });
+
+    if (!membership) {
+      throw new UnauthorizedException(
+        'Conversation inexistante ou accès refusé.',
+      );
+    }
+
+    const conversation = await this.conversationRepo.findOne({
+      where: { id: conversationId },
+      relations: ['participants'],
+    });
+
+    if (!conversation) {
+      throw new UnauthorizedException('Conversation introuvable.');
+    }
+
+    return conversation;
   }
 
   async saveMessage(data: {

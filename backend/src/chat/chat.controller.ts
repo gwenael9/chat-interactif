@@ -25,6 +25,7 @@ export class ChatController {
     @Body() dto: CreateConversationDto,
     @Req() req: RequestWithUser,
   ) {
+    console.log('dto', dto);
     if (!dto.participantsIds) {
       throw new UnauthorizedException(
         'Veuillez renseigner au moins 1 participant.',
@@ -37,6 +38,20 @@ export class ChatController {
       uniqueParticipants,
       dto.name,
     );
+  }
+  @UseGuards(AuthGuard)
+  @Get('conversations')
+  async getAllConversation(@Req() req: RequestWithUser) {
+    return this.chatService.findAll(req.user.sub);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('conversations/:id')
+  async getOneConversation(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.chatService.findOne(id, req.user.sub);
   }
 
   @Post()
