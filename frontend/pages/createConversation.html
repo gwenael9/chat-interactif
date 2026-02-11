@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Créer une conversation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" href="../css/createConversation.css">
+</head>
+<body>
+
+<nav class="topbar">
+    <div class="logo">Collab<span>App</span></div>
+    <div class="user">
+        <i class="fa-solid fa-user"></i>
+        <span id="userPseudo">Utilisateur</span>
+    </div>
+</nav>
+
+<div class="app-container">
+
+    <!-- SIDEBAR FIXE -->
+    <aside class="sidebar">
+        <a href="landingPage.html"><i class="fa-solid fa-users"></i> Conversations</a>
+        <a><i class="fa-solid fa-address-book"></i> Contacts</a>
+        <a class="active"><i class="fa-solid fa-plus"></i> Nouvelle Conversation</a>
+        <a><i class="fa-solid fa-gear"></i> Paramètres</a>
+    </aside>
+
+    <!-- CONTENU -->
+    <main class="content">
+        <h2>Créer une nouvelle conversation</h2>
+
+        <div class="card p-4 shadow-sm">
+
+            <div class="mb-3">
+                <label>Email du participant</label>
+                <div class="input-group">
+                    <input type="email" id="participantEmail" class="form-control" placeholder="email@example.com">
+                    <button class="btn btn-primary" onclick="addParticipant()">Ajouter</button>
+                </div>
+            </div>
+
+            <h5>Participants :</h5>
+            <ul id="participantsList" class="list-group mb-3"></ul>
+
+            <button class="btn btn-success w-100" onclick="createConversation()">
+                Créer la conversation
+            </button>
+
+        </div>
+    </main>
+
+</div>
+
+<script>
+const API_URL = "http://localhost:4000";
+let participants = [];
+
+// Vérifier utilisateur connecté
+async function getCurrentUser() {
+    const response = await fetch(`${API_URL}/auth/me`, {
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    const user = await response.json();
+    document.getElementById("userPseudo").textContent = user.pseudo;
+}
+
+// Ajouter participant par email
+async function addParticipant() {
+    const email = document.getElementById("participantEmail").value;
+
+    if (!email) return;
+
+    const response = await fetch(`${API_URL}/user?search=${email}`, {
+        credentials: "include"
+    });
+
+    const users = await response.json();
+
+    if (!users.length) {
+        alert("Utilisateur introuvable");
+        return;
+    }
+
+    const user = users[0];
+
+    if (participants.includes(user.id)) {
+        alert("Déjà ajouté");
+        return;
+    }
+
+    participants.push(user.id);
+
+    const li = document.createElement("li");
+    li.className = "list-group-item d-flex justify-content-between align-items-center";
+    li.innerHTML = `
+        ${user.pseudo}
+        <button class="btn btn-sm btn-danger" onclick="removeParticipant('${user.id}', this)">X</button>
+    `;
+
+    document.getElementById("participantsList").appendChild(li);
+    document.getElementById("participantEmail").value = "";
+}
+
+// Supprimer participant
+function removeParticipant(id, button) {
+    participants = participants.filter(p => p !== id);
+    button.parentElement.remove();
+}
+
+// Créer conversation
+async function createConversation() {
+    if (!participants.length) {
+        alert("Ajoute au moins un participant");
+        return;
+    }
+
+    const response = await fetch(`${API_URL}/chat/conversations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+            participantIds: participants
+        })
+    });
+
+    const conversation = await response.json();
+
+    window.location.href = `groupChat.html?conversationId=${conversation.id}`;
+}
+
+getCurrentUser();
+</script>
+
+</body>
+</html>
