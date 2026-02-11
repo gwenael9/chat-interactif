@@ -1,4 +1,3 @@
-// chat.events.ts
 export class MessageCreatedEvent {
   constructor(
     public readonly conversationId: string,

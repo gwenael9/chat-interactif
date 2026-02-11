@@ -39,10 +39,10 @@ export class ChatController {
     );
   }
 
-
- @Post()
+  @Post()
   async createMessage(
-    @Body() body: Pick<MessageEntity, 'conversationId' | 'senderId' | 'content'>,
+    @Body()
+    body: Pick<MessageEntity, 'conversationId' | 'senderId' | 'content'>,
   ): Promise<MessageEntity> {
     return this.chatService.saveMessage(body);
   }
@@ -87,7 +87,4 @@ export class ChatController {
   // async getHistory(@Body() dto: GetHistoryDto): Promise<MessageEntity[]> {
   //   return this.chatService.getMessagesByConversation(dto.conversationId);
   // }
-
-
-
 }

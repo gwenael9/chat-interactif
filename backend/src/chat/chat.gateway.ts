@@ -17,9 +17,6 @@ import { MessageCreatedEvent } from './chat.event';
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly chatService: ChatService) {}
 
-
-  
-
   @WebSocketServer()
   server!: Server;
 
@@ -87,11 +84,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.emit('history', messages);
   }
 
-
   @OnEvent('chat.message.created')
-handleMessageCreated(event: MessageCreatedEvent) {
-  this.server
-    .to(`conversation:${event.conversationId}`)
-    .emit('newMessage', event.message);
-}
+  handleMessageCreated(event: MessageCreatedEvent) {
+    this.server
+      .to(`conversation:${event.conversationId}`)
+      .emit('newMessage', event.message);
+  }
 }

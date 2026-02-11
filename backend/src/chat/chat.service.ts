@@ -50,7 +50,7 @@ export class ChatService {
     return savedConversation;
   }
 
- async saveMessage(data: {
+  async saveMessage(data: {
     conversationId: string;
     senderId: string;
     content: string;
@@ -69,7 +69,6 @@ export class ChatService {
 
     const saved = await this.messageRepo.save(message);
 
-    
     this.eventEmitter.emit(
       'chat.message.created',
       new MessageCreatedEvent(data.conversationId, saved),
