@@ -26,7 +26,9 @@
     <!-- SIDEBAR FIXE -->
     <aside class="sidebar">
         <a href="landingPage.html"><i class="fa-solid fa-users"></i> Conversations</a>
-        <a><i class="fa-solid fa-address-book"></i> Contacts</a>
+        <a id="contactsLink">
+            <i class="fa-solid fa-address-book"></i> Contacts
+        </a>
         <a class="active"><i class="fa-solid fa-plus"></i> Nouvelle Conversation</a>
         <a><i class="fa-solid fa-gear"></i> Paramètres</a>
     </aside>
@@ -67,7 +69,7 @@
 </div>
 
 <script>
-const API_URL = "http://localhost:4000";
+    const API_URL = "http://localhost:4000";
 let participants = [];
 let currentUserId = null;
 
@@ -100,9 +102,10 @@ async function loadUsers() {
 
     const users = await response.json();
     const select = document.getElementById("userSelect");
+    select.innerHTML = `<option value="">-- Sélectionner un utilisateur --</option>`;
 
     users.forEach(user => {
-        if (user.id === currentUserId) return; // ne pas s'ajouter soi-même
+        if (user.id === currentUserId) return;
 
         const option = document.createElement("option");
         option.value = user.id;
@@ -174,17 +177,75 @@ async function createConversation() {
     }
 
     const conversation = await response.json();
-
     window.location.href = `groupChat.html?conversationId=${conversation.id}`;
 }
+
+// ---------------- SIDEBAR CONTACTS ----------------
+function setupSidebar() {
+    const contactsLink = document.getElementById("contactsLink");
+
+    contactsLink.addEventListener("click", () => {
+        loadContacts();
+        setActive(contactsLink);
+    });
+}
+
 
 // ---------------- INIT ----------------
 async function init() {
     await getCurrentUser();
     await loadUsers();
+    setupSidebar();
 }
 
+function setActive(element) {
+    document.querySelectorAll(".sidebar a").forEach(link => {
+        link.classList.remove("active");
+    });
+    element.classList.add("active");
+}
+
+async function loadContacts() {
+    const main = document.querySelector(".content");
+
+    main.innerHTML = `
+        <h2>Mes Contacts</h2>
+        <ul class="contact-list list-group"></ul>
+    `;
+
+    try {
+        const response = await fetch(`${API_URL}/user`, {
+            credentials: "include"
+        });
+
+        if (!response.ok) {
+            alert("Erreur chargement contacts");
+            return;
+        }
+
+        const users = await response.json();
+        const list = document.querySelector(".contact-list");
+
+        users
+            .filter(user => user.id !== currentUserId)
+            .forEach(user => {
+                const li = document.createElement("li");
+                li.className = "list-group-item";
+                li.innerHTML = `
+                    <i class="fa-solid fa-user me-2"></i>
+                    ${user.pseudo}
+                `;
+                list.appendChild(li);
+            });
+
+    } catch (error) {
+        console.error("Erreur contacts:", error);
+    }
+}
+
+
 init();
+
 </script>
 
 </body>

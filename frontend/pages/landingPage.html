@@ -28,7 +28,9 @@
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <a class="active"><i class="fa-solid fa-users"></i> Conversations</a>
-        <a><i class="fa-solid fa-address-book"></i> Contacts</a>
+        <a id="contactsLink">
+            <i class="fa-solid fa-address-book"></i> Contacts
+        </a>
         <a href="createConversation.html">
             <i class="fa-solid fa-plus"></i> Nouvelle Conversation
         </a>
@@ -37,7 +39,7 @@
 
     <!-- MAIN CONTENT -->
     <main class="content">
-        <h2>Mes groupes</h2>
+        <h2>Mes Conversations</h2>
 
         <div class="cards">
             <a href="groupChat.html">
@@ -65,6 +67,7 @@
 </div>
     <script>
 const API_URL = "http://localhost:4000";
+let currentUser = null;
 
 // -------- Vérifie utilisateur connecté --------
 async function getCurrentUser() {
@@ -73,16 +76,14 @@ async function getCurrentUser() {
             credentials: "include"
         });
 
-        console.log("response",response);
-
         if (!response.ok) {
             window.location.href = "login.html";
             return null;
         }
 
-        const user = await response.json();
-        document.querySelector(".user span").textContent = user.pseudo;
-        return user;
+        currentUser = await response.json();
+        document.querySelector(".user span").textContent = currentUser.pseudo;
+        return currentUser;
 
     } catch (error) {
         console.error("Erreur auth:", error);
@@ -92,58 +93,97 @@ async function getCurrentUser() {
 
 // -------- Charger conversations --------
 async function loadConversations() {
+    const main = document.querySelector(".content");
+    main.innerHTML = `
+        <h2>Mes Conversations</h2>
+        <div class="cards"></div>
+    `;
+
     try {
         const response = await fetch(`${API_URL}/chat/conversations`, {
             credentials: "include"
         });
 
-        if (!response.ok) {
-            console.error("Erreur récupération conversations");
-            return;
-        }
+        if (!response.ok) return;
 
         const conversations = await response.json();
         const cardsContainer = document.querySelector(".cards");
-        cardsContainer.innerHTML = "";
 
         conversations.forEach(conv => {
             const card = document.createElement("div");
             card.className = "card-box";
-
             card.innerHTML = `
-                <h4>Conversation</h4>
+                <h4>${conv.name || "Conversation"}</h4>
                 <p>${conv.participants.length} membres</p>
             `;
 
-            card.addEventListener("click", () => {
+            card.onclick = () => {
                 window.location.href = `groupChat.html?conversationId=${conv.id}`;
-            });
+            };
 
             cardsContainer.appendChild(card);
         });
-
-        // Bouton Nouveau Groupe
-        const addCard = document.createElement("div");
-        addCard.className = "card-box add";
-        addCard.innerHTML = `<i class="fa-solid fa-plus"></i><p>Nouveau groupe</p>`;
-        addCard.addEventListener("click", () => {
-            window.location.href = "createConversation.html";
-        });
-
-        cardsContainer.appendChild(addCard);
 
     } catch (error) {
         console.error("Erreur conversations:", error);
     }
 }
 
+// -------- Charger contacts --------
+async function loadContacts() {
+    const main = document.querySelector(".content");
+
+    main.innerHTML = `
+        <h2>Mes Contacts</h2>
+        <ul class="contact-list list-group"></ul>
+    `;
+
+    try {
+        const response = await fetch(`${API_URL}/user`, {
+            credentials: "include"
+        });
+
+        if (!response.ok) return;
+
+        const users = await response.json();
+        const list = document.querySelector(".contact-list");
+
+        users
+            .filter(user => user.id !== currentUser.id)
+            .forEach(user => {
+                const li = document.createElement("li");
+                li.className = "list-group-item";
+                li.innerHTML = `<i class="fa-solid fa-user me-2"></i> ${user.pseudo}`;
+                list.appendChild(li);
+            });
+
+    } catch (error) {
+        console.error("Erreur contacts:", error);
+    }
+}
+
 // -------- Gestion sidebar --------
 function setupSidebar() {
-    const newConversationBtn = document.querySelector(".sidebar a:nth-child(3)");
-    
-    newConversationBtn.addEventListener("click", () => {
-        window.location.href = "createConversation.html";
+    const conversationsLink = document.querySelector(".sidebar a:nth-child(1)");
+    const contactsLink = document.getElementById("contactsLink");
+
+    conversationsLink.onclick = () => {
+        setActive(conversationsLink);
+        loadConversations();
+    };
+
+    contactsLink.onclick = () => {
+        setActive(contactsLink);
+        loadContacts();
+    };
+}
+
+// -------- Active tab --------
+function setActive(element) {
+    document.querySelectorAll(".sidebar a").forEach(link => {
+        link.classList.remove("active");
     });
+    element.classList.add("active");
 }
 
 // -------- Init --------
@@ -152,11 +192,12 @@ async function init() {
     if (!user) return;
 
     setupSidebar();
-    await loadConversations();
+    loadConversations(); // Par défaut
 }
 
 init();
 </script>
+
 
 
 </body>
