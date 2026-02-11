@@ -125,6 +125,24 @@ Toutes les routes ci‑dessous sont préfixées par l’URL du backend, par déf
     - `participants: { conversationId, userId, lastReadMessageId? }[]`
     - `name: string`
 
+- **GET** `/chat/conversations`
+  - **Description** : récupère les informations des conversations.
+  - **Réponse** : `ConversationEntity` avec :
+    - `id: string`
+    - `isGroup: boolean`
+    - `createdAt: string`
+    - `participants: { conversationId, userId, lastReadMessageId? }[]`
+    - `name: string`.
+
+- **GET** `/chat/conversations/:id`
+  - **Description** : récupère les informations d'une seul conversation.
+  - **Réponse** : `ConversationEntity` avec :
+    - `id: string`
+    - `isGroup: boolean`
+    - `createdAt: string`
+    - `participants: { conversationId, userId, lastReadMessageId? }[]`
+    - `name: string`.
+
 - **GET** `/chat/conversations/:id/messages`
   - **Description** : récupère l’historique des messages d’une conversation (ordonnés du plus ancien au plus récent).
   - **Réponse** : `MessageEntity[]` (structure à voir dans le backend : `id`, `conversationId`, `senderId`, `content`, `createdAt`, …).
