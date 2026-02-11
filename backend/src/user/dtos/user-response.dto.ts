@@ -13,4 +13,8 @@ export class UserResponseDto {
   @Expose()
   @Type(() => String)
   pseudo: string;
+
+  @Expose()
+  @Type(() => UserResponseDto)
+  friends: UserResponseDto[];
 }

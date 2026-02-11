@@ -4,6 +4,7 @@ import { UserEntity } from './user.entity';
 import { UserService } from './user.service';
 import { AuthModule } from 'src/auth/auth.module';
 import { UserController } from './user.controller';
+import { FriendGateway } from './friend.gateway';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { UserController } from './user.controller';
     forwardRef(() => AuthModule),
   ],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, FriendGateway],
   exports: [UserService],
 })
 export class UserModule {}
