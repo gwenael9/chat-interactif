@@ -9,10 +9,11 @@ async function bootstrap() {
 
   registerGlobals(app);
 
-  // app.enableCors({
-  //   origin:
-  //   credentials: true,
-  // });
+  app.enableCors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
 
   app.use(cookieParser());
   await app.listen(PORT);
