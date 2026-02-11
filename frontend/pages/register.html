@@ -21,21 +21,21 @@
                     <div class="d-flex flex-row align-items-center justify-content-center justify-content-lg-start">            
                     </div>
                     <div data-mdb-input-init class="form-outline mb-4">
-                        <label class="form-label" for="form2Example2">Username</label>
-                        <input type="text" id="form2Example2" class="form-control form-control-lg"
-                        placeholder="Enter a valid username" />                      
+                        <label class="form-label" for="form2Example2">Pseudo</label>
+                        <input type="text" id="pseudo" class="form-control form-control-lg"
+                        placeholder="Entrez votre pseudo" />                      
                     </div>
 
                     <div data-mdb-input-init class="form-outline mb-4">
-                        <label class="form-label" for="form3Example3">Email address</label>
-                        <input type="email" id="form3Example3" class="form-control form-control-lg"
-                        placeholder="Enter a valid email address" />                      
+                        <label class="form-label" for="form3Example3">Email</label>
+                        <input type="email" id="email" class="form-control form-control-lg"
+                        placeholder="Entrez votre email" />                      
                     </div>
 
                     <div data-mdb-input-init class="form-outline mb-3">
                         <label class="form-label" for="form3Example4">Password</label>
-                        <input type="password" id="form3Example4" class="form-control form-control-lg"
-                        placeholder="Enter password" />                      
+                        <input type="password" id="password" class="form-control form-control-lg"
+                        placeholder="Entrez votre mot de passe" />                      
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
@@ -45,7 +45,7 @@
 
                     <div class="text-center text-lg-start mt-4 pt-2">
                         <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg"
-                        style="padding-left: 2.5rem; padding-right: 2.5rem;">Register</button>
+                        style="padding-left: 2.5rem; padding-right: 2.5rem;" onclick="registerUser()">Register</button>
                         <p class="small fw-bold mt-2 pt-1 mb-0">Already have an account? <a href="../pages/login.html"
                             class="link-primary">Login</a>
                         </p>
@@ -75,5 +75,44 @@
             </div>
         </div>
     </section>
+
+    <script>
+        async function registerUser() {
+
+        const pseudo = document.getElementById("pseudo").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        try {
+            const response = await fetch("http://localhost:4000/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    pseudo: pseudo,
+                    email: email,
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.status === 201) {
+                alert(data.message);
+                window.location.href = "/frontend/pages/login.html";
+
+            } else {
+                alert("Erreur : " + data.message);
+            }
+
+        } catch (error) {
+            console.error("Erreur :", error);
+            alert("Serveur non accessible");
+        }
+    }
+</script>
+
+
 </body>
 </html>
