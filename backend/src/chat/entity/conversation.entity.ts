@@ -19,12 +19,14 @@ export class ConversationEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @OneToMany(() => ConversationUserEntity, (cu) => cu.conversation)
+  @OneToMany(() => ConversationUserEntity, (cu) => cu.conversation, {
+    cascade: true,
+  })
   participants: ConversationUserEntity[];
 
   @OneToMany(() => MessageEntity, (message) => message.conversation)
   messages: MessageEntity[];
 
-  @Column()
+  @Column({ default: 'default' })
   name: string;
 }
