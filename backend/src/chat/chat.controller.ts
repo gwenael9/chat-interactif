@@ -1,10 +1,18 @@
-import { Controller, Get, Post, Body, Param, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  ParseUUIDPipe,
+  Req,
+} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { MessageEntity } from './entity/message.entity';
 import { SendMessageDto } from './dtos/send-message.dto';
 import { GetHistoryDto } from './dtos/get-history.dto';
 import { MarkAsReadDto } from './dtos/mark-as-read.dto';
-
+import { type RequestWithUser } from 'src/auth/guards/auth.guard';
 
 @Controller('chat')
 export class ChatController {
@@ -26,10 +34,13 @@ export class ChatController {
    * POST /chat/messages
    */
   @Post('messages')
-  async sendMessage(@Body() dto: SendMessageDto): Promise<MessageEntity> {
+  async sendMessage(
+    @Body() dto: SendMessageDto,
+    @Req() req: RequestWithUser,
+  ): Promise<MessageEntity> {
     return this.chatService.saveMessage({
       conversationId: dto.conversationId,
-      senderId: dto.senderId, 
+      senderId: req.user.sub,
       content: dto.content,
     });
   }
@@ -39,8 +50,12 @@ export class ChatController {
    * POST /chat/read
    */
   @Post('read')
-  async markAsRead(@Body() dto: MarkAsReadDto) {
-    return this.chatService.markAsRead(dto.userId, dto.conversationId, dto.messageId);
+  async markAsRead(@Body() dto: MarkAsReadDto, @Req() req: RequestWithUser) {
+    return this.chatService.markAsRead(
+      req.user.sub,
+      dto.conversationId,
+      dto.messageId,
+    );
   }
 
   /**

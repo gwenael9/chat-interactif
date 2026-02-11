@@ -54,7 +54,9 @@ export class ChatService {
     });
   }
 
-  async getMessagesByConversation(conversationId: string) {
+  async getMessagesByConversation(
+    conversationId: string,
+  ): Promise<MessageEntity[]> {
     return this.messageRepo.find({
       where: { conversationId },
       order: { createdAt: 'ASC' }, // du plus ancien au plus récent
