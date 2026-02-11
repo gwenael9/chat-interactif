@@ -9,6 +9,8 @@ import { MessageEntity } from './entity/message.entity';
 import { ConversationUserEntity } from './entity/conversation-user.entity';
 import { UserService } from 'src/user/user.service';
 import { ConversationEntity } from './entity/conversation.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { MessageCreatedEvent } from './chat.event';
 
 @Injectable()
 export class ChatService {
@@ -22,10 +24,13 @@ export class ChatService {
 
     @InjectRepository(ConversationEntity)
     private readonly conversationRepo: Repository<ConversationEntity>,
+
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async createConversation(
     participantIds: string[],
+    conversatioName: string,
   ): Promise<ConversationEntity> {
     for (const participantId of participantIds) {
       const participant = await this.userService.findOne(participantId);
@@ -37,6 +42,7 @@ export class ChatService {
     const conversation = this.conversationRepo.create({
       isGroup: participantIds.length > 2,
       participants: participantIds.map((id) => ({ userId: id })),
+      name: conversatioName,
     });
 
     const savedConversation = await this.conversationRepo.save(conversation);
@@ -61,7 +67,14 @@ export class ChatService {
       content: data.content,
     });
 
-    return this.messageRepo.save(message);
+    const saved = await this.messageRepo.save(message);
+
+    this.eventEmitter.emit(
+      'chat.message.created',
+      new MessageCreatedEvent(data.conversationId, saved),
+    );
+
+    return saved;
   }
 
   async markAsRead(userId: string, conversationId: string, messageId: string) {

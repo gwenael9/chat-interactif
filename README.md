@@ -117,12 +117,13 @@ Toutes les routes ci‑dessous sont préfixées par l’URL du backend, par déf
 
 - **POST** `/chat/conversations`
   - **Headers** : cookie `authToken`.
-  - **Body JSON** : `{ "participantIds": string[] }` (ids des autres participants, le backend ajoute automatiquement l’utilisateur connecté).
+  - **Body JSON** : `{ "participantIds": string[], "name": string }` (ids des autres participants, le backend ajoute automatiquement l’utilisateur connecté).
   - **Réponse** : `ConversationEntity` avec :
     - `id: string`
     - `isGroup: boolean`
     - `createdAt: string`
     - `participants: { conversationId, userId, lastReadMessageId? }[]`
+    - `name: string`
 
 - **GET** `/chat/conversations/:id/messages`
   - **Description** : récupère l’historique des messages d’une conversation (ordonnés du plus ancien au plus récent).

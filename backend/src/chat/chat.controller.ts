@@ -13,6 +13,7 @@ import { ChatService } from './chat.service';
 import { MessageEntity } from './entity/message.entity';
 import { MarkAsReadDto } from './dtos/mark-as-read.dto';
 import { AuthGuard, type RequestWithUser } from 'src/auth/guards/auth.guard';
+import { CreateConversationDto } from './dtos/conversation.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -21,18 +22,29 @@ export class ChatController {
   @UseGuards(AuthGuard)
   @Post('conversations')
   async createConversation(
-    @Body() body: { participantIds: string[] },
+    @Body() dto: CreateConversationDto,
     @Req() req: RequestWithUser,
   ) {
-    if (!body.participantIds) {
+    if (!dto.participantsIds) {
       throw new UnauthorizedException(
         'Veuillez renseigner au moins 1 participant.',
       );
     }
     const uniqueParticipants = Array.from(
-      new Set([...body.participantIds, req.user.sub]),
+      new Set([...dto.participantsIds, req.user.sub]),
     );
-    return await this.chatService.createConversation(uniqueParticipants);
+    return await this.chatService.createConversation(
+      uniqueParticipants,
+      dto.name,
+    );
+  }
+
+  @Post()
+  async createMessage(
+    @Body()
+    body: Pick<MessageEntity, 'conversationId' | 'senderId' | 'content'>,
+  ): Promise<MessageEntity> {
+    return this.chatService.saveMessage(body);
   }
 
   /**
