@@ -113,9 +113,10 @@ async function loadConversations() {
             const card = document.createElement("div");
             card.className = "card-box";
             card.innerHTML = `
-                <h4>${conv.name || "Conversation"}</h4>
+                <h4>${conv.name || "Sans nom"}</h4>
                 <p>${conv.participants.length} membres</p>
             `;
+
 
             card.onclick = () => {
                 window.location.href = `groupChat.html?conversationId=${conv.id}`;
