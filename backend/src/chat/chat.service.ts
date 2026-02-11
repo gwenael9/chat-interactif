@@ -1,18 +1,48 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { MessageEntity } from './entity/message.entity';
 import { ConversationUserEntity } from './entity/conversation-user.entity';
+import { UserService } from 'src/user/user.service';
+import { ConversationEntity } from './entity/conversation.entity';
 
 @Injectable()
 export class ChatService {
   constructor(
     @InjectRepository(MessageEntity)
     private readonly messageRepo: Repository<MessageEntity>,
+    private userService: UserService,
 
     @InjectRepository(ConversationUserEntity)
     private readonly convUserRepo: Repository<ConversationUserEntity>,
+
+    @InjectRepository(ConversationEntity)
+    private readonly conversationRepo: Repository<ConversationEntity>,
   ) {}
+
+  async createConversation(
+    participantIds: string[],
+  ): Promise<ConversationEntity> {
+    for (const participantId of participantIds) {
+      const participant = await this.userService.findOne(participantId);
+      if (!participant) {
+        throw new NotFoundException('Participant not found');
+      }
+    }
+
+    const conversation = this.conversationRepo.create({
+      isGroup: participantIds.length > 2,
+      participants: participantIds.map((id) => ({ userId: id })),
+    });
+
+    const savedConversation = await this.conversationRepo.save(conversation);
+
+    return savedConversation;
+  }
 
   async saveMessage(data: {
     conversationId: string;

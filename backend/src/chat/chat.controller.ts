@@ -6,17 +6,34 @@ import {
   Param,
   ParseUUIDPipe,
   Req,
+  UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { MessageEntity } from './entity/message.entity';
-import { SendMessageDto } from './dtos/send-message.dto';
-import { GetHistoryDto } from './dtos/get-history.dto';
 import { MarkAsReadDto } from './dtos/mark-as-read.dto';
-import { type RequestWithUser } from 'src/auth/guards/auth.guard';
+import { AuthGuard, type RequestWithUser } from 'src/auth/guards/auth.guard';
 
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
+
+  @UseGuards(AuthGuard)
+  @Post('conversations')
+  async createConversation(
+    @Body() body: { participantIds: string[] },
+    @Req() req: RequestWithUser,
+  ) {
+    if (!body.participantIds) {
+      throw new UnauthorizedException(
+        'Veuillez renseigner au moins 1 participant.',
+      );
+    }
+    const uniqueParticipants = Array.from(
+      new Set([...body.participantIds, req.user.sub]),
+    );
+    return await this.chatService.createConversation(uniqueParticipants);
+  }
 
   /**
    * Récupérer l'historique d'une conversation
@@ -29,21 +46,17 @@ export class ChatController {
     return this.chatService.getMessagesByConversation(conversationId);
   }
 
-  /**
-   * Envoyer un message
-   * POST /chat/messages
-   */
-  @Post('messages')
-  async sendMessage(
-    @Body() dto: SendMessageDto,
-    @Req() req: RequestWithUser,
-  ): Promise<MessageEntity> {
-    return this.chatService.saveMessage({
-      conversationId: dto.conversationId,
-      senderId: req.user.sub,
-      content: dto.content,
-    });
-  }
+  // @Post('messages')
+  // async sendMessage(
+  //   @Body() dto: SendMessageDto,
+  //   @Req() req: RequestWithUser,
+  // ): Promise<MessageEntity> {
+  //   return this.chatService.saveMessage({
+  //     conversationId: dto.conversationId,
+  //     senderId: req.user.sub,
+  //     content: dto.content,
+  //   });
+  // }
 
   /**
    * Marquer un message comme lu
@@ -58,12 +71,8 @@ export class ChatController {
     );
   }
 
-  /**
-   * Récupérer l'historique via POST (alternative au GET)
-   * POST /chat/history
-   */
-  @Post('history')
-  async getHistory(@Body() dto: GetHistoryDto): Promise<MessageEntity[]> {
-    return this.chatService.getMessagesByConversation(dto.conversationId);
-  }
+  // @Post('history')
+  // async getHistory(@Body() dto: GetHistoryDto): Promise<MessageEntity[]> {
+  //   return this.chatService.getMessagesByConversation(dto.conversationId);
+  // }
 }
