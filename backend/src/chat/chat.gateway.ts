@@ -10,10 +10,15 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GetHistoryDto } from './dtos/get-history.dto';
 import { ChatService } from './chat.service';
+import { OnEvent } from '@nestjs/event-emitter';
+import { MessageCreatedEvent } from './chat.event';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly chatService: ChatService) {}
+
+
+  
 
   @WebSocketServer()
   server!: Server;
@@ -81,4 +86,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     client.emit('history', messages);
   }
+
+
+  @OnEvent('chat.message.created')
+handleMessageCreated(event: MessageCreatedEvent) {
+  this.server
+    .to(`conversation:${event.conversationId}`)
+    .emit('newMessage', event.message);
+}
 }

@@ -9,6 +9,8 @@ import { MessageEntity } from './entity/message.entity';
 import { ConversationUserEntity } from './entity/conversation-user.entity';
 import { UserService } from 'src/user/user.service';
 import { ConversationEntity } from './entity/conversation.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { MessageCreatedEvent } from './chat.event';
 
 @Injectable()
 export class ChatService {
@@ -22,6 +24,8 @@ export class ChatService {
 
     @InjectRepository(ConversationEntity)
     private readonly conversationRepo: Repository<ConversationEntity>,
+
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async createConversation(
@@ -44,7 +48,7 @@ export class ChatService {
     return savedConversation;
   }
 
-  async saveMessage(data: {
+ async saveMessage(data: {
     conversationId: string;
     senderId: string;
     content: string;
@@ -61,7 +65,15 @@ export class ChatService {
       content: data.content,
     });
 
-    return this.messageRepo.save(message);
+    const saved = await this.messageRepo.save(message);
+
+    
+    this.eventEmitter.emit(
+      'chat.message.created',
+      new MessageCreatedEvent(data.conversationId, saved),
+    );
+
+    return saved;
   }
 
   async markAsRead(userId: string, conversationId: string, messageId: string) {
