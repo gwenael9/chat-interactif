@@ -10,6 +10,7 @@ import { databaseConfig } from './config';
 import { Reflector } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UserModule } from './user/user.module';
     TypeOrmModule.forRoot(databaseConfig),
     AuthModule,
     UserModule,
+    ChatModule,
   ],
 })
 export class AppModule {}
