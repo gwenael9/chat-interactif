@@ -37,15 +37,24 @@
 
         <div class="card p-4 shadow-sm">
 
+            <!-- Nom conversation -->
             <div class="mb-3">
-                <label>Email du participant</label>
-                <div class="input-group">
-                    <input type="email" id="participantEmail" class="form-control" placeholder="email@example.com">
-                    <button class="btn btn-primary" onclick="addParticipant()">Ajouter</button>
-                </div>
+                <label>Nom de la conversation</label>
+                <input type="text" id="conversationName" class="form-control" placeholder="Ex: Projet Dev Web">
             </div>
 
-            <h5>Participants :</h5>
+            <!-- Sélection participants -->
+            <div class="mb-3">
+                <label>Ajouter un participant</label>
+                <select id="userSelect" class="form-select">
+                    <option value="">-- Sélectionner un utilisateur --</option>
+                </select>
+                <button class="btn btn-primary mt-2 w-100" onclick="addParticipantFromSelect()">
+                    Ajouter
+                </button>
+            </div>
+
+            <h5>Participants sélectionnés :</h5>
             <ul id="participantsList" class="list-group mb-3"></ul>
 
             <button class="btn btn-success w-100" onclick="createConversation()">
@@ -60,8 +69,9 @@
 <script>
 const API_URL = "http://localhost:4000";
 let participants = [];
+let currentUserId = null;
 
-// Vérifier utilisateur connecté
+// ---------------- UTILISATEUR CONNECTÉ ----------------
 async function getCurrentUser() {
     const response = await fetch(`${API_URL}/auth/me`, {
         credentials: "include"
@@ -73,54 +83,76 @@ async function getCurrentUser() {
     }
 
     const user = await response.json();
+    currentUserId = user.id;
     document.getElementById("userPseudo").textContent = user.pseudo;
 }
 
-// Ajouter participant par email
-async function addParticipant() {
-    const email = document.getElementById("participantEmail").value;
-
-    if (!email) return;
-
-    const response = await fetch(`${API_URL}/user?search=${email}`, {
+// ---------------- CHARGER TOUS LES USERS ----------------
+async function loadUsers() {
+    const response = await fetch(`${API_URL}/user`, {
         credentials: "include"
     });
 
+    if (!response.ok) {
+        alert("Erreur chargement utilisateurs");
+        return;
+    }
+
     const users = await response.json();
+    const select = document.getElementById("userSelect");
 
-    if (!users.length) {
-        alert("Utilisateur introuvable");
+    users.forEach(user => {
+        if (user.id === currentUserId) return; // ne pas s'ajouter soi-même
+
+        const option = document.createElement("option");
+        option.value = user.id;
+        option.textContent = user.pseudo;
+        select.appendChild(option);
+    });
+}
+
+// ---------------- AJOUT PARTICIPANT ----------------
+function addParticipantFromSelect() {
+    const select = document.getElementById("userSelect");
+    const userId = select.value;
+
+    if (!userId) return;
+
+    if (participants.includes(userId)) {
+        alert("Utilisateur déjà ajouté");
         return;
     }
 
-    const user = users[0];
+    participants.push(userId);
 
-    if (participants.includes(user.id)) {
-        alert("Déjà ajouté");
-        return;
-    }
-
-    participants.push(user.id);
+    const pseudo = select.options[select.selectedIndex].text;
 
     const li = document.createElement("li");
     li.className = "list-group-item d-flex justify-content-between align-items-center";
     li.innerHTML = `
-        ${user.pseudo}
-        <button class="btn btn-sm btn-danger" onclick="removeParticipant('${user.id}', this)">X</button>
+        ${pseudo}
+        <button class="btn btn-sm btn-danger" onclick="removeParticipant('${userId}', this)">X</button>
     `;
 
     document.getElementById("participantsList").appendChild(li);
-    document.getElementById("participantEmail").value = "";
+    select.value = "";
 }
 
-// Supprimer participant
+// ---------------- SUPPRIMER ----------------
 function removeParticipant(id, button) {
     participants = participants.filter(p => p !== id);
     button.parentElement.remove();
 }
 
-// Créer conversation
+// ---------------- CRÉER CONVERSATION ----------------
 async function createConversation() {
+    const name = document.getElementById("conversationName").value.trim();
+
+    if (!name) {
+        alert("Entre un nom de conversation");
+        return;
+    }
+
     if (!participants.length) {
         alert("Ajoute au moins un participant");
         return;
@@ -131,16 +163,28 @@ async function createConversation() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
+            name: name,
             participantIds: participants
         })
     });
+
+    if (!response.ok) {
+        alert("Erreur création conversation");
+        return;
+    }
 
     const conversation = await response.json();
 
     window.location.href = `groupChat.html?conversationId=${conversation.id}`;
 }
 
-getCurrentUser();
+// ---------------- INIT ----------------
+async function init() {
+    await getCurrentUser();
+    await loadUsers();
+}
+
+init();
 </script>
 
 </body>
