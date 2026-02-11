@@ -9,12 +9,14 @@ import { UserEntity } from './user.entity';
 import { ILike, Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/user-input.dto';
 import * as bcrypt from 'bcrypt';
+import { FriendGateway } from './friend.gateway';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
+    private friendGateway: FriendGateway,
   ) {}
 
   async findAll(search?: string): Promise<UserEntity[]> {
@@ -78,6 +80,12 @@ export class UserService {
     user.friends.push(friend);
 
     await this.userRepository.save([user, friend]);
+
+    this.friendGateway.notifyFriendRequest(friendId, {
+      fromUserId: userId,
+      fromPseudo: user.pseudo,
+    });
+
     return friend;
   }
 
