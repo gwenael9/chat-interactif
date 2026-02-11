@@ -95,7 +95,7 @@ export class UserService {
 
     if (!user.friends.some((f) => f.id === friendId)) {
       throw new UnauthorizedException(
-        `${friend.pseudo} ne fait partie de vos amis.`,
+        `${friend.pseudo} ne fait pas partie de vos amis.`,
       );
     }
 
