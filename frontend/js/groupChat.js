@@ -11,6 +11,12 @@ const conversationId = params.get('conversationId') || null;
 const messagesContainer = document.querySelector('.chat-messages');
 const input = document.querySelector('.chat-input input');
 const sendButton = document.querySelector('.chat-input button');
+const usernameLabel = document.querySelector('#current-username');
+const statusBadge = document.querySelector('#connection-status');
+
+if (usernameLabel) {
+  usernameLabel.textContent = CURRENT_USERNAME;
+}
 
 function formatTime(date) {
   return date.toLocaleTimeString('fr-FR', {
@@ -58,6 +64,12 @@ function initSocket() {
   });
 
   socket.on('connect', () => {
+    if (statusBadge) {
+      statusBadge.textContent = 'En ligne';
+      statusBadge.classList.add('online');
+      statusBadge.classList.remove('offline');
+    }
+
     if (conversationId) {
       socket.emit('getHistory', { conversationId });
     }
@@ -91,6 +103,12 @@ function initSocket() {
   });
 
   socket.on('disconnect', () => {
+    if (statusBadge) {
+      statusBadge.textContent = 'Hors ligne';
+      statusBadge.classList.add('offline');
+      statusBadge.classList.remove('online');
+    }
+
     addMessage({
       author: 'Système',
       text: 'Déconnecté du serveur de chat.',
@@ -100,6 +118,11 @@ function initSocket() {
 
   socket.on('connect_error', (err) => {
     console.error('Erreur Socket.io :', err);
+    if (statusBadge) {
+      statusBadge.textContent = 'Hors ligne';
+      statusBadge.classList.add('offline');
+      statusBadge.classList.remove('online');
+    }
     addMessage({
       author: 'Système',
       text: 'Impossible de se connecter au serveur de chat.',
