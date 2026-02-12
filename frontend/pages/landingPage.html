@@ -93,30 +93,29 @@ async function getCurrentUser() {
 
 // -------- Charger conversations --------
 async function loadConversations() {
-    const main = document.querySelector(".content");
-    main.innerHTML = `
-        <h2>Mes Conversations</h2>
-        <div class="cards"></div>
-    `;
-
+    async function loadConversations() {
     try {
         const response = await fetch(`${API_URL}/chat/conversations`, {
             credentials: "include"
         });
 
-        if (!response.ok) return;
+        if (!response.ok) {
+            console.error("Erreur récupération conversations");
+            return;
+        }
 
         const conversations = await response.json();
         const cardsContainer = document.querySelector(".cards");
+        cardsContainer.innerHTML = "";
 
         conversations.forEach(conv => {
             const card = document.createElement("div");
             card.className = "card-box";
+
             card.innerHTML = `
                 <h4>${conv.name || "Sans nom"}</h4>
                 <p>${conv.participants.length} membres</p>
             `;
-
 
             card.onclick = () => {
                 window.location.href = `groupChat.html?conversationId=${conv.id}`;
@@ -128,6 +127,8 @@ async function loadConversations() {
     } catch (error) {
         console.error("Erreur conversations:", error);
     }
+}
+
 }
 
 // -------- Charger contacts --------

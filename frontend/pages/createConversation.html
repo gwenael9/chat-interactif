@@ -105,8 +105,6 @@ async function loadUsers() {
     select.innerHTML = `<option value="">-- Sélectionner un utilisateur --</option>`;
 
     users.forEach(user => {
-        if (user.id === currentUserId) return;
-
         const option = document.createElement("option");
         option.value = user.id;
         option.textContent = user.pseudo;

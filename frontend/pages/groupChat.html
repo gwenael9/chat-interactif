@@ -68,24 +68,24 @@ async function getCurrentUser() {
     currentUser = await response.json();
 }
 
-// ---------------- Charger conversation ----------------
 async function loadConversationInfo() {
-    const response = await fetch(`${API_URL}/chat/conversations`, {
-        credentials: "include"
-    });
+    const response = await fetch(
+        `${API_URL}/chat/conversations/${conversationId}`,
+        { credentials: "include" }
+    );
 
-    const conversations = await response.json();
-    const conversation = conversations.find(c => c.id === conversationId);
-
-    if (!conversation) {
+    if (!response.ok) {
         alert("Conversation introuvable");
         return;
     }
+
+    const conversation = await response.json();
 
     document.getElementById("conversationName").textContent = conversation.name;
     document.getElementById("memberCount").textContent =
         `${conversation.participants.length} membres`;
 }
+
 
 // ---------------- Charger historique ----------------
 async function loadMessages() {
