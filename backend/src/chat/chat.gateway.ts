@@ -61,11 +61,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('Message reçu:', payload.content);
 
     // save dans la base
-    const message = await this.chatService.saveMessage({
-      conversationId: payload.conversationId,
-      senderId: payload.senderId,
-      content: payload.content,
-    });
+    const message = await this.chatService.saveMessage(
+      payload.conversationId,
+      payload.senderId,
+      payload.content,
+    );
 
     this.server
       .to(`conversation:${payload.conversationId}`)
