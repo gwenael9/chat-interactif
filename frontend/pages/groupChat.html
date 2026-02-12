@@ -23,6 +23,19 @@
         <header class="sidebar-header">
             <h3>Conversations</h3>
         </header>
+
+        <nav class="chat-sidebar-nav">
+            <a href="landingPage.html" class="nav-link active">
+                <i class="fa-solid fa-comments"></i> Conversations
+            </a>
+            <a href="landingPage.html" class="nav-link">
+                <i class="fa-solid fa-address-book"></i> Contacts
+            </a>
+            <a href="createConversation.html" class="nav-link">
+                <i class="fa-solid fa-plus"></i> Nouvelle conversation
+            </a>
+        </nav>
+
         <ul id="conversationList" class="conversation-list"></ul>
     </aside>
 
@@ -268,6 +281,14 @@ async function init() {
 
     await selectConversation(initialId);
     setupSocket();
+
+    const input = document.getElementById("messageInput");
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
 }
 
 init();
