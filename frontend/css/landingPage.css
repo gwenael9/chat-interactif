@@ -26,7 +26,7 @@ body {
 }
 
 .logo span {
-    color: #ffdd57;
+    color: #e5e7eb;
 }
 
 .user {
@@ -44,20 +44,20 @@ body {
 /* SIDEBAR */
 .sidebar {
     width: 220px;
-    background: #111827;
+    background: #0f172a;
     padding: 20px;
     display: flex;
     flex-direction: column;
 }
 
 .sidebar a {
-    color: #c7c9d3;
+    color: #e5e7eb;
     text-decoration: none;
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 8px;
-    transition: 0.3s;
-    background-color: #f7c43a;
+    transition: 0.2s ease;
+    background-color: #111827;
 }
 
 .sidebar a i {
@@ -66,7 +66,7 @@ body {
 
 .sidebar a:hover,
 .sidebar a.active {
-    background: #4f46e5;
+    background: linear-gradient(90deg, #4f46e5, #6366f1);
     color: white;
 }
 
@@ -79,6 +79,34 @@ body {
 .content h2 {
     margin-bottom: 20px;
     color: #111827;
+}
+
+/* TOAST NOTIFICATIONS */
+#toastContainer {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 50;
+}
+
+.friend-toast {
+    background: #111827;
+    color: #e5e7eb;
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.4);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.friend-toast.hide {
+    opacity: 0;
+    transform: translateY(8px);
 }
 
 /* CARDS */
@@ -127,4 +155,34 @@ body {
 
 .contact-list li:last-child {
     border-bottom: none;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .app-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+        overflow-x: auto;
+    }
+
+    .sidebar a {
+        white-space: nowrap;
+        margin-bottom: 0;
+    }
+
+    .content {
+        padding: 16px;
+    }
+
+    .cards {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
 }

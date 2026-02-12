@@ -11,6 +11,9 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/landingPage.css">
+
+    <!-- Socket.IO (pour les notifications d'amis) -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
 
@@ -42,14 +45,12 @@
         <h2>Mes Conversations</h2>
 
         <div class="cards">
-            <a href="groupChat.html">
-                <div class="card-box">
-                    <h4>Projet Dev Web</h4>
-                    <p>5 membres</p>
-                </div>
-            </a>
+            <div class="card-box" data-conversation-id="demo-conversation-1">
+                <h4>Projet Dev Web</h4>
+                <p>5 membres</p>
+            </div>
 
-            <div class="card-box">
+            <div class="card-box" data-conversation-id="demo-conversation-2">
                 <h4>Startup Idea</h4>
                 <p>3 membres</p>
             </div>
@@ -68,6 +69,7 @@
     <script>
 const API_URL = "http://localhost:4000";
 let currentUser = null;
+let friendSocket = null;
 
 // -------- Vérifie utilisateur connecté --------
 async function getCurrentUser() {
@@ -83,6 +85,7 @@ async function getCurrentUser() {
 
         currentUser = await response.json();
         document.querySelector(".user span").textContent = currentUser.pseudo;
+        setupFriendSocket();
         return currentUser;
 
     } catch (error) {
@@ -169,8 +172,34 @@ async function loadContacts() {
             .filter(user => user.id !== currentUser.id)
             .forEach(user => {
                 const li = document.createElement("li");
-                li.className = "list-group-item";
+                li.className = "list-group-item contact-item";
                 li.innerHTML = `<i class="fa-solid fa-user me-2"></i> ${user.pseudo}`;
+
+                li.onclick = async () => {
+                    try {
+                        const res = await fetch(`${API_URL}/chat/conversations`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                name: `Conversation avec ${user.pseudo}`,
+                                participantsIds: [user.id]
+                            })
+                        });
+
+                        if (!res.ok) {
+                            alert("Impossible de créer la conversation");
+                            return;
+                        }
+
+                        const conversation = await res.json();
+                        window.location.href = `groupChat.html?conversationId=${conversation.id}`;
+                    } catch (err) {
+                        console.error("Erreur création conversation privée:", err);
+                        alert("Erreur réseau lors de la création de la conversation");
+                    }
+                };
+
                 list.appendChild(li);
             });
 
@@ -201,6 +230,48 @@ function setActive(element) {
         link.classList.remove("active");
     });
     element.classList.add("active");
+}
+
+// -------- Socket notifications amis --------
+function setupFriendSocket() {
+    if (typeof io === "undefined" || !currentUser) return;
+    try {
+        friendSocket = io(API_URL, {
+            transports: ["websocket"],
+            query: { userId: currentUser.id }
+        });
+
+        friendSocket.emit("registerUser", { userId: currentUser.id });
+
+        friendSocket.on("friendRequest", (payload) => {
+            showFriendToast(payload.fromPseudo || "Un utilisateur");
+        });
+    } catch (e) {
+        console.error("Erreur socket amis:", e);
+    }
+}
+
+function showFriendToast(fromPseudo) {
+    let container = document.getElementById("toastContainer");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "toastContainer";
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement("div");
+    toast.className = "friend-toast";
+    toast.innerHTML = `
+        <i class="fa-solid fa-user-plus me-2"></i>
+        Nouvelle demande d'ami de <strong>${fromPseudo}</strong>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add("hide");
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
 }
 
 // -------- Init --------
