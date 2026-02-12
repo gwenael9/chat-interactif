@@ -9,6 +9,8 @@ import { AuthModule } from 'src/auth/auth.module';
 import { UserModule } from 'src/user/user.module';
 import { ChatController } from './chat.controller';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -17,6 +19,14 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       ConversationEntity,
       ConversationUserEntity,
     ]),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '24h' },
+      }),
+      inject: [ConfigService],
+    }),
     AuthModule,
     UserModule,
     EventEmitterModule.forRoot(),

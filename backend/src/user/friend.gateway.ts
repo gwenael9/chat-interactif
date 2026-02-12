@@ -7,7 +7,9 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ cors: { origin: '*' } })
+@WebSocketGateway({
+  cors: { origin: 'http://localhost:5500', credentials: true },
+})
 export class FriendGateway {
   @WebSocketServer()
   server: Server;

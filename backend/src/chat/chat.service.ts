@@ -11,7 +11,7 @@ import { ConversationUserEntity } from './entity/conversation-user.entity';
 import { UserService } from 'src/user/user.service';
 import { ConversationEntity } from './entity/conversation.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-// import { MessageCreatedEvent } from './chat.event';
+import { MessageCreatedEvent } from './chat.event';
 
 @Injectable()
 export class ChatService {
@@ -108,10 +108,10 @@ export class ChatService {
 
     const saved = await this.messageRepo.save(message);
 
-    // this.eventEmitter.emit(
-    //   'chat.message.created',
-    //   new MessageCreatedEvent(conversationId, saved),
-    // );
+    this.eventEmitter.emit(
+      'chat.message.created',
+      new MessageCreatedEvent(conversationId, saved),
+    );
 
     return saved;
   }
@@ -143,5 +143,16 @@ export class ChatService {
       where: { conversationId },
       order: { createdAt: 'ASC' }, // du plus ancien au plus récent
     });
+  }
+
+  async isMemberOfConversation(
+    userId: string,
+    conversationId: string,
+  ): Promise<boolean> {
+    const membership = await this.convUserRepo.findOne({
+      where: { userId, conversationId },
+    });
+
+    return !!membership;
   }
 }
