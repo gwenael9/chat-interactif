@@ -193,12 +193,21 @@ async function selectConversation(id) {
 // ---------------- WebSocket ----------------
 function setupSocket() {
     socket = io(API_URL, {
-        query: { userId: currentUser.id }
+        withCredentials: true,
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5,
     });
 
-    if (currentConversationId) {
-        socket.emit("joinConversation", { conversationId: currentConversationId });
-    }
+    socket.on('connect', () => {
+        if (currentConversationId) {
+            socket.emit("joinConversation", { conversationId: currentConversationId });
+        }
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Déconnecté du WebSocket');
+    });
 
     socket.on("newMessage", (message) => {
         if (message.conversationId === currentConversationId) {
@@ -208,20 +217,38 @@ function setupSocket() {
 }
 
 // ---------------- Envoyer message ----------------
-function sendMessage() {
+async function sendMessage() {
     const input = document.getElementById("messageInput");
     const content = input.value.trim();
 
     if (!content) return;
     if (!currentConversationId) return;
 
-    socket.emit("sendMessage", {
-        conversationId: currentConversationId,
-        senderId: currentUser.id,
-        content
-    });
+    try {
+        const response = await fetch(`${API_URL}/chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                conversationId: currentConversationId,
+                content: content
+            })
+        });
 
-    input.value = "";
+        if (!response.ok) {
+            const error = await response.json();
+            alert(error.message || 'Erreur lors de l\'envoi');
+            return;
+        }
+
+        input.value = "";
+        
+    } catch (error) {
+        console.error('Erreur envoi message:', error);
+        alert('Erreur réseau');
+    }
 }
 
 // ---------------- Init ----------------
