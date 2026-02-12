@@ -254,6 +254,14 @@ async function init() {
 
     await selectConversation(initialId);
     setupSocket();
+
+    const input = document.getElementById("messageInput");
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
 }
 
 init();
