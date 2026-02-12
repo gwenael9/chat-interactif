@@ -13,7 +13,10 @@ import { ChatService } from './chat.service';
 import { MessageEntity } from './entity/message.entity';
 import { MarkAsReadDto } from './dtos/mark-as-read.dto';
 import { AuthGuard, type RequestWithUser } from 'src/auth/guards/auth.guard';
-import { CreateConversationDto } from './dtos/conversation.dto';
+import {
+  CreateConversationDto,
+  CreateMessageDto,
+} from './dtos/conversation.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -39,6 +42,7 @@ export class ChatController {
       dto.name,
     );
   }
+
   @UseGuards(AuthGuard)
   @Get('conversations')
   async getAllConversation(@Req() req: RequestWithUser) {
@@ -54,18 +58,20 @@ export class ChatController {
     return this.chatService.findOne(id, req.user.sub);
   }
 
+  @UseGuards(AuthGuard)
   @Post()
   async createMessage(
     @Body()
-    body: Pick<MessageEntity, 'conversationId' | 'senderId' | 'content'>,
+    dto: CreateMessageDto,
+    @Req() req: RequestWithUser,
   ): Promise<MessageEntity> {
-    return this.chatService.saveMessage(body);
+    return this.chatService.saveMessage(
+      dto.conversationId,
+      req.user.sub,
+      dto.content,
+    );
   }
 
-  /**
-   * Récupérer l'historique d'une conversation
-   * GET /chat/conversations/:id/messages
-   */
   @Get('conversations/:id/messages')
   async getMessages(
     @Param('id', ParseUUIDPipe) conversationId: string,
@@ -73,22 +79,6 @@ export class ChatController {
     return this.chatService.getMessagesByConversation(conversationId);
   }
 
-  // @Post('messages')
-  // async sendMessage(
-  //   @Body() dto: SendMessageDto,
-  //   @Req() req: RequestWithUser,
-  // ): Promise<MessageEntity> {
-  //   return this.chatService.saveMessage({
-  //     conversationId: dto.conversationId,
-  //     senderId: req.user.sub,
-  //     content: dto.content,
-  //   });
-  // }
-
-  /**
-   * Marquer un message comme lu
-   * POST /chat/read
-   */
   @Post('read')
   async markAsRead(@Body() dto: MarkAsReadDto, @Req() req: RequestWithUser) {
     return this.chatService.markAsRead(
@@ -97,9 +87,4 @@ export class ChatController {
       dto.messageId,
     );
   }
-
-  // @Post('history')
-  // async getHistory(@Body() dto: GetHistoryDto): Promise<MessageEntity[]> {
-  //   return this.chatService.getMessagesByConversation(dto.conversationId);
-  // }
 }

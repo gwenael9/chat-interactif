@@ -8,3 +8,11 @@ export class CreateConversationDto {
   @IsString()
   name: string;
 }
+
+export class CreateMessageDto {
+  @IsString()
+  conversationId: string;
+
+  @IsString()
+  content: string;
+}

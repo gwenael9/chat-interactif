@@ -93,28 +93,24 @@ export class ChatService {
     return conversation;
   }
 
-  async saveMessage(data: {
-    conversationId: string;
-    senderId: string;
-    content: string;
-  }) {
+  async saveMessage(conversationId: string, senderId: string, content: string) {
     const membership = await this.convUserRepo.findOne({
-      where: { conversationId: data.conversationId, userId: data.senderId },
+      where: { conversationId: conversationId, userId: senderId },
     });
 
     if (!membership) throw new ForbiddenException('User not in conversation');
 
     const message = this.messageRepo.create({
-      conversationId: data.conversationId,
-      senderId: data.senderId,
-      content: data.content,
+      conversationId: conversationId,
+      senderId: senderId,
+      content: content,
     });
 
     const saved = await this.messageRepo.save(message);
 
     this.eventEmitter.emit(
       'chat.message.created',
-      new MessageCreatedEvent(data.conversationId, saved),
+      new MessageCreatedEvent(conversationId, saved),
     );
 
     return saved;
