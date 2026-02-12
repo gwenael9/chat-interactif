@@ -44,7 +44,7 @@ body {
 /* SIDEBAR */
 .sidebar {
     width: 220px;
-    background: #0f172a;
+    background: #020617;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -66,7 +66,7 @@ body {
 
 .sidebar a:hover,
 .sidebar a.active {
-    background: linear-gradient(90deg, #4f46e5, #6366f1);
+    background-color: #1d4ed8;
     color: white;
 }
 
