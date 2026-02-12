@@ -159,13 +159,15 @@ async function createConversation() {
         return;
     }
 
+    console.log("participants", participants, name)
+
     const response = await fetch(`${API_URL}/chat/conversations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
             name: name,
-            participantIds: participants
+            participantsIds: participants
         })
     });
 
