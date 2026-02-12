@@ -167,8 +167,34 @@ async function loadContacts() {
             .filter(user => user.id !== currentUser.id)
             .forEach(user => {
                 const li = document.createElement("li");
-                li.className = "list-group-item";
+                li.className = "list-group-item contact-item";
                 li.innerHTML = `<i class="fa-solid fa-user me-2"></i> ${user.pseudo}`;
+
+                li.onclick = async () => {
+                    try {
+                        const res = await fetch(`${API_URL}/chat/conversations`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                name: `Conversation avec ${user.pseudo}`,
+                                participantsIds: [user.id]
+                            })
+                        });
+
+                        if (!res.ok) {
+                            alert("Impossible de créer la conversation");
+                            return;
+                        }
+
+                        const conversation = await res.json();
+                        window.location.href = `groupChat.html?conversationId=${conversation.id}`;
+                    } catch (err) {
+                        console.error("Erreur création conversation privée:", err);
+                        alert("Erreur réseau lors de la création de la conversation");
+                    }
+                };
+
                 list.appendChild(li);
             });
 
