@@ -26,6 +26,13 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard)
+  @Get('friends/all')
+  @SerializeOptions({ type: UserResponseDto })
+  async getFriends(@Req() req: RequestWithUser): Promise<UserResponseDto[]> {
+    return this.userService.getFriends(req.user.sub);
+  }
+
+  @UseGuards(AuthGuard)
   @Post('friends/:friendId')
   async addFriend(
     @Param('friendId') friendId: string,

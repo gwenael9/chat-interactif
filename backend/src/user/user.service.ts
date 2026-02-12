@@ -106,6 +106,19 @@ export class UserService {
     return friend;
   }
 
+  async getFriends(userId: string): Promise<UserEntity[]> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['friends'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('Utilisateur introuvable.');
+    }
+
+    return user.friends;
+  }
+
   verifyIfIsAlreadyFriend(user: UserEntity, friend: UserEntity): void {
     const alreadyFriends = user.friends.some((f) => f.id === friend.id);
     if (alreadyFriends) throw new UnauthorizedException('Vous êtes déjà amis.');

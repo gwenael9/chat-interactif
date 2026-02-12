@@ -103,6 +103,11 @@ Toutes les routes ci‑dessous sont préfixées par l’URL du backend, par déf
   - **Description** : liste les utilisateurs, éventuellement filtrés par `search` (pseudo / email…).
   - **Réponse** : tableau de `UserResponseDto`.
 
+- **GET** `/user/friends/all`
+  - **Headers** : cookie `authToken`.
+  - **Description** : récupère toute la liste d’amis de l’utilisateur connecté.
+  - **Réponse** : tableau de `UserResponseDto`.
+
 - **POST** `/user/friends/:friendId`
   - **Headers** : cookie `authToken`.
   - **Description** : ajoute un utilisateur à la liste d’amis de l’utilisateur connecté.
