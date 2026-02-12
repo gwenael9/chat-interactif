@@ -2,11 +2,14 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Projet Dev Web | Chat</title>
+    <title>Chat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
     <!-- CSS -->
     <link rel="stylesheet" href="../css/groupChat.css">
@@ -20,54 +23,152 @@
         <div class="group-info">
             <i class="fa-solid fa-users"></i>
             <div>
-                <h4 id="chat-title">Projet Dev Web</h4>
-                <span id="chat-subtitle">Conversation</span>
+                <h4 id="conversationName">Chargement...</h4>
+                <span id="memberCount"></span>
             </div>
-        </div>
-
-        <div class="chat-actions">
-            <span class="user-name" id="current-username"></span>
-            <span class="status-badge" id="connection-status">Hors ligne</span>
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <i class="fa-solid fa-ellipsis-vertical"></i>
         </div>
     </header>
 
     <!-- MESSAGES -->
-    <main class="chat-messages">
-        <div class="message received">
-            <p class="author">Alice</p>
-            <p>Salut tout le monde 👋</p>
-            <span class="time">10:02</span>
-        </div>
-
-        <div class="message received">
-            <p class="author">John</p>
-            <p>On avance sur la page d’accueil aujourd’hui ?</p>
-            <span class="time">10:05</span>
-        </div>
-
-        <div class="message sent">
-            <p>Oui, j’ai presque fini le CSS 💪</p>
-            <span class="time">10:06</span>
-        </div>
-    </main>
+    <main class="chat-messages" id="messagesContainer"></main>
 
     <!-- INPUT -->
     <footer class="chat-input">
-        <i class="fa-solid fa-paperclip"></i>
-        <input type="text" placeholder="Écrire un message..." />
-        <button>
+        <input type="text" id="messageInput" placeholder="Écrire un message..." />
+        <button onclick="sendMessage()">
             <i class="fa-solid fa-paper-plane"></i>
         </button>
     </footer>
 
 </div>
 
-<!-- Socket.io client -->
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
-<!-- JS -->
-<script src="../js/groupChat.js"></script>
+<script>
+const API_URL = "http://localhost:4000";
+let socket;
+let conversationId;
+let currentUser;
+
+// ---------------- Récupérer ID URL ----------------
+function getConversationId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("conversationId");
+}
+
+// ---------------- Utilisateur connecté ----------------
+async function getCurrentUser() {
+    const response = await fetch(`${API_URL}/auth/me`, {
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    currentUser = await response.json();
+}
+
+async function loadConversationInfo() {
+    const response = await fetch(
+        `${API_URL}/chat/conversations/${conversationId}`,
+        { credentials: "include" }
+    );
+
+    if (!response.ok) {
+        alert("Conversation introuvable");
+        return;
+    }
+
+    const conversation = await response.json();
+
+    document.getElementById("conversationName").textContent = conversation.name;
+    document.getElementById("memberCount").textContent =
+        `${conversation.participants.length} membres`;
+}
+
+
+// ---------------- Charger historique ----------------
+async function loadMessages() {
+    const response = await fetch(
+        `${API_URL}/chat/conversations/${conversationId}/messages`,
+        { credentials: "include" }
+    );
+
+    const messages = await response.json();
+    const container = document.getElementById("messagesContainer");
+    container.innerHTML = "";
+
+    messages.forEach(msg => renderMessage(msg));
+}
+
+// ---------------- Afficher message ----------------
+function renderMessage(message) {
+    const container = document.getElementById("messagesContainer");
+
+    const div = document.createElement("div");
+    div.className =
+        message.senderId === currentUser.id
+            ? "message sent"
+            : "message received";
+
+    div.innerHTML = `
+        ${message.senderId !== currentUser.id ? `<p class="author">${message.sender?.pseudo || ""}</p>` : ""}
+        <p>${message.content}</p>
+        <span class="time">${new Date(message.createdAt).toLocaleTimeString()}</span>
+    `;
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+// ---------------- WebSocket ----------------
+function setupSocket() {
+    socket = io(API_URL, {
+        query: { userId: currentUser.id }
+    });
+
+    socket.emit("joinConversation", { conversationId });
+
+    socket.on("newMessage", (message) => {
+        if (message.conversationId === conversationId) {
+            renderMessage(message);
+        }
+    });
+}
+
+// ---------------- Envoyer message ----------------
+function sendMessage() {
+    const input = document.getElementById("messageInput");
+    const content = input.value.trim();
+
+    if (!content) return;
+
+    socket.emit("sendMessage", {
+        conversationId,
+        senderId: currentUser.id,
+        content
+    });
+
+    input.value = "";
+}
+
+// ---------------- Init ----------------
+async function init() {
+    conversationId = getConversationId();
+
+    if (!conversationId) {
+        alert("Aucune conversation sélectionnée");
+        return;
+    }
+
+    await getCurrentUser();
+    await loadConversationInfo();
+    await loadMessages();
+    setupSocket();
+}
+
+init();
+</script>
 
 </body>
 </html>
