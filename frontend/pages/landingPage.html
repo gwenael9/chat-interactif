@@ -93,7 +93,6 @@ async function getCurrentUser() {
 
 // -------- Charger conversations --------
 async function loadConversations() {
-    async function loadConversations() {
     try {
         const response = await fetch(`${API_URL}/chat/conversations`, {
             credentials: "include"
@@ -105,8 +104,26 @@ async function loadConversations() {
         }
 
         const conversations = await response.json();
+        console.log("Conversations reçues:", conversations); // Pour débugger
+        
+        const main = document.querySelector(".content");
+        
+        // Réinitialiser le contenu
+        main.innerHTML = `
+            <h2>Mes Conversations</h2>
+            <div class="cards"></div>
+        `;
+        
         const cardsContainer = document.querySelector(".cards");
-        cardsContainer.innerHTML = "";
+
+        if (conversations.length === 0) {
+            cardsContainer.innerHTML = `
+                <p class="text-muted">Aucune conversation. 
+                <a href="createConversation.html">Créer une nouvelle conversation</a>
+                </p>
+            `;
+            return;
+        }
 
         conversations.forEach(conv => {
             const card = document.createElement("div");
@@ -114,7 +131,7 @@ async function loadConversations() {
 
             card.innerHTML = `
                 <h4>${conv.name || "Sans nom"}</h4>
-                <p>${conv.participants.length} membres</p>
+                <p>${conv.participants?.length || 0} membres</p>
             `;
 
             card.onclick = () => {
@@ -127,8 +144,6 @@ async function loadConversations() {
     } catch (error) {
         console.error("Erreur conversations:", error);
     }
-}
-
 }
 
 // -------- Charger contacts --------
