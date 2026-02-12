@@ -113,10 +113,22 @@ body {
         width: 100%;
         flex-direction: row;
         overflow-x: auto;
+        padding: 10px 12px;
+        gap: 8px;
     }
 
     .content {
         margin-left: 0;
         padding: 20px;
+    }
+}
+
+@media (max-width: 600px) {
+    .card {
+        max-width: 100%;
+    }
+
+    .content {
+        padding: 16px;
     }
 }

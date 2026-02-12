@@ -16,43 +16,51 @@
 </head>
 <body>
 
-<div class="chat-container">
+<div class="chat-layout">
 
-    <!-- HEADER -->
-    <header class="chat-header">
-        <div class="group-info">
-            <i class="fa-solid fa-users"></i>
-            <div>
-                <h4 id="conversationName">Chargement...</h4>
-                <span id="memberCount"></span>
+    <!-- LISTE DES CONVERSATIONS (COLONNE GAUCHE) -->
+    <aside class="chat-sidebar">
+        <header class="sidebar-header">
+            <h3>Conversations</h3>
+        </header>
+        <ul id="conversationList" class="conversation-list"></ul>
+    </aside>
+
+    <!-- ZONE DE CHAT (COLONNE DROITE) -->
+    <div class="chat-container">
+
+        <!-- HEADER -->
+        <header class="chat-header">
+            <div class="group-info">
+                <i class="fa-solid fa-users"></i>
+                <div>
+                    <h4 id="conversationName">Sélectionnez une conversation</h4>
+                    <span id="memberCount"></span>
+                </div>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <!-- MESSAGES -->
-    <main class="chat-messages" id="messagesContainer"></main>
+        <!-- MESSAGES -->
+        <main class="chat-messages" id="messagesContainer"></main>
 
-    <!-- INPUT -->
-    <footer class="chat-input">
-        <input type="text" id="messageInput" placeholder="Écrire un message..." />
-        <button onclick="sendMessage()">
-            <i class="fa-solid fa-paper-plane"></i>
-        </button>
-    </footer>
+        <!-- INPUT -->
+        <footer class="chat-input">
+            <input type="text" id="messageInput" placeholder="Écrire un message..." />
+            <button onclick="sendMessage()">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </footer>
+
+    </div>
 
 </div>
 
 <script>
 const API_URL = "http://localhost:4000";
 let socket;
-let conversationId;
+let currentConversationId = null;
 let currentUser;
-
-// ---------------- Récupérer ID URL ----------------
-function getConversationId() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("conversationId");
-}
+let conversations = [];
 
 // ---------------- Utilisateur connecté ----------------
 async function getCurrentUser() {
@@ -69,8 +77,9 @@ async function getCurrentUser() {
 }
 
 async function loadConversationInfo() {
+    if (!currentConversationId) return;
     const response = await fetch(
-        `${API_URL}/chat/conversations/${conversationId}`,
+        `${API_URL}/chat/conversations/${currentConversationId}`,
         { credentials: "include" }
     );
 
@@ -83,14 +92,15 @@ async function loadConversationInfo() {
 
     document.getElementById("conversationName").textContent = conversation.name;
     document.getElementById("memberCount").textContent =
-        `${conversation.participants.length} membres`;
+        `${conversation.participants.length} membre${conversation.participants.length > 1 ? "s" : ""}`;
 }
 
 
 // ---------------- Charger historique ----------------
 async function loadMessages() {
+    if (!currentConversationId) return;
     const response = await fetch(
-        `${API_URL}/chat/conversations/${conversationId}/messages`,
+        `${API_URL}/chat/conversations/${currentConversationId}/messages`,
         { credentials: "include" }
     );
 
@@ -121,16 +131,77 @@ function renderMessage(message) {
     container.scrollTop = container.scrollHeight;
 }
 
+// ---------------- Conversations sidebar ----------------
+async function loadConversationsSidebar() {
+    try {
+        const response = await fetch(`${API_URL}/chat/conversations`, {
+            credentials: "include"
+        });
+
+        if (!response.ok) return;
+
+        conversations = await response.json();
+        const list = document.getElementById("conversationList");
+        list.innerHTML = "";
+
+        if (!conversations.length) {
+            list.innerHTML = `<li class="conversation-empty">Aucune conversation. Créez-en une depuis la page principale.</li>`;
+            return;
+        }
+
+        conversations.forEach(conv => {
+            const li = document.createElement("li");
+            li.className = "conversation-item";
+            li.dataset.id = conv.id;
+            li.innerHTML = `
+                <div class="conversation-title">${conv.name || "Sans nom"}</div>
+                <div class="conversation-subtitle">${conv.participants.length} membre${conv.participants.length > 1 ? "s" : ""}</div>
+            `;
+            li.addEventListener("click", () => selectConversation(conv.id));
+            list.appendChild(li);
+        });
+    } catch (e) {
+        console.error("Erreur chargement conversations:", e);
+    }
+}
+
+function highlightActiveConversation() {
+    const items = document.querySelectorAll(".conversation-item");
+    items.forEach((item) => {
+        if (item.dataset.id === currentConversationId) {
+            item.classList.add("active");
+        } else {
+            item.classList.remove("active");
+        }
+    });
+}
+
+async function selectConversation(id) {
+    if (!id || id === currentConversationId) return;
+
+    currentConversationId = id;
+    highlightActiveConversation();
+
+    await loadConversationInfo();
+    await loadMessages();
+
+    if (socket) {
+        socket.emit("joinConversation", { conversationId: currentConversationId });
+    }
+}
+
 // ---------------- WebSocket ----------------
 function setupSocket() {
     socket = io(API_URL, {
         query: { userId: currentUser.id }
     });
 
-    socket.emit("joinConversation", { conversationId });
+    if (currentConversationId) {
+        socket.emit("joinConversation", { conversationId: currentConversationId });
+    }
 
     socket.on("newMessage", (message) => {
-        if (message.conversationId === conversationId) {
+        if (message.conversationId === currentConversationId) {
             renderMessage(message);
         }
     });
@@ -142,9 +213,10 @@ function sendMessage() {
     const content = input.value.trim();
 
     if (!content) return;
+    if (!currentConversationId) return;
 
     socket.emit("sendMessage", {
-        conversationId,
+        conversationId: currentConversationId,
         senderId: currentUser.id,
         content
     });
@@ -154,16 +226,20 @@ function sendMessage() {
 
 // ---------------- Init ----------------
 async function init() {
-    conversationId = getConversationId();
+    await getCurrentUser();
+    await loadConversationsSidebar();
 
-    if (!conversationId) {
-        alert("Aucune conversation sélectionnée");
+    // Choix de la conversation initiale : URL > première dispo
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get("conversationId");
+    const initialId = fromUrl || (conversations[0] && conversations[0].id);
+
+    if (!initialId) {
+        alert("Aucune conversation disponible");
         return;
     }
 
-    await getCurrentUser();
-    await loadConversationInfo();
-    await loadMessages();
+    await selectConversation(initialId);
     setupSocket();
 }
 
